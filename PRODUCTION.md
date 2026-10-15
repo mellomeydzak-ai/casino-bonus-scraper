@@ -1,22 +1,11 @@
 # Taking this to production: 200 casinos, updated daily
 
-**Where it runs.** A single Hetzner Cloud VPS (CX22: 2 vCPU, 4 GB RAM, EU region) running Docker Compose, with three containers: the Node scraper, PostgreSQL, and Caddy. A daily batch of 200 pages is light work, so a managed platform or Kubernetes would add cost and moving parts without adding much. The cost is predictable, I can SSH in to debug, and the setup moves to another provider easily if needed.
+**Where it runs.** I'd use one Hetzner Cloud VPS (CX22: 2 vCPU, 4 GB RAM, EU region) running Docker Compose with three containers: the Node scraper, PostgreSQL and Caddy. Scraping 200 pages once a day is a small job, so Kubernetes or a managed platform would add cost and complexity for no real benefit. A VPS has a fixed price, I can SSH in to debug, and Docker makes it easy to move to another provider.
 
-**Database and backups.** PostgreSQL 16. A `casinos` table holds the source URLs, and a `bonus_snapshots` table stores one row per casino per day: the structured fields, the raw extracted text, a text hash, and any validation warnings. This gives history ("when did the wagering change?") and an audit trail for disputed values. Backups run nightly with `pg_dump`, encrypted and pushed with restic to a Hetzner Storage Box (or Backblaze B2), keeping 7 daily, 4 weekly and 6 monthly copies. Weekly Hetzner server snapshots sit on top of that. I'd test a restore into a scratch container once a month, because an untested backup isn't a backup.
+**Database and backups.** PostgreSQL. One table lists the casinos and their source URLs. A second table stores one row per casino per day with the bonus fields, the raw scraped text and any validation warnings, so I keep a history of every change and can show where each value came from. Every night `pg_dump` makes a backup, and restic encrypts it and sends it off the server to a Hetzner Storage Box. I'd keep 7 daily, 4 weekly and 6 monthly copies, and test a restore once a month.
 
-**Domain, DNS and HTTPS.** Register the domain at Cloudflare Registrar and use Cloudflare DNS (proxied), which also gives caching and DDoS protection. Caddy issues and renews Let's Encrypt certificates automatically, and Cloudflare runs in "Full (strict)" mode so traffic is encrypted end to end. After each run, the scraper generates the public page as static HTML plus JSON, served by Caddy and cached at the edge.
+**Domain, DNS and HTTPS.** I'd buy the domain through Cloudflare and use Cloudflare DNS, which adds caching and DDoS protection for free. Caddy gets and renews Let's Encrypt certificates automatically, and Cloudflare's "Full (strict)" mode keeps traffic encrypted end to end.
 
-**Scheduling and knowing it failed.** A systemd timer (or host cron) starts the scraper at 05:00 UTC. A worker pool limits concurrency (about 4 at a time, with rate limits per domain), and each casino gets up to 2 retries for network errors. It never retries a 403 or a CAPTCHA, which instead get flagged to switch source. To save cost, the LLM only runs when a page's text hash has changed. Failures surface in three ways:
-1. **Dead-man's switch:** the run pings Healthchecks.io on success. If no ping arrives by 06:00, I get an email or Slack alert, which also covers the box being down.
-2. **Quality thresholds:** an alert fires if more than 5% of casinos fail, if a field suddenly goes null for many casinos (a sign of a layout change), or if a value moves sharply (e.g. wagering 35 → 3).
-3. **Sentry** catches code exceptions.
+**Scheduling and knowing it failed.** A cron job (or systemd timer) runs the scraper every day at 05:00 UTC, about 4 pages at a time. It retries network errors but never works around a block. When a run succeeds, it pings Healthchecks.io. If no ping arrives by 06:00, I get an email. That also catches the server being down. I'd also get an alert if more than 5% of casinos fail, or if a field suddenly goes empty across many casinos, which usually means the site layout changed.
 
-**Rough monthly cost**
-| Item | ~USD/month |
-|---|---|
-| Hetzner CX22 VPS | 5 |
-| Storage Box / B2 backups + snapshots | 3–5 |
-| Domain (~$10–15/yr) | 1 |
-| Cloudflare, Healthchecks.io, Sentry (free tiers) | 0 |
-| LLM (Haiku-class; ~200 × 2k tokens/day, less with change detection) | 5–15 |
-| **Total** | **≈ $15–30** |
+**Monthly cost (rough).** VPS about $5, backups about $4, domain about $1, LLM calls about $5–15. Cloudflare and Healthchecks.io are free. Total: about **$15–25 a month**.
