@@ -1,0 +1,36 @@
+{
+  "source": {
+    "name": "CasinoTop10",
+    "origin": "https://www.casinotop10.net"
+  },
+  "generated_at": "2026-10-15T18:35:16.633Z",
+  "casinos": [
+    {
+      "casino": "BetMGM Casino",
+      "welcome_bonus": "100% Deposit Match up to 1,000 USD + 25 USD On The House",
+      "wagering_multiplier": null,
+      "minimum_deposit": "10 USD",
+      "source_url": "https://www.casinotop10.net/betmgm-casino",
+      "scraped_at": "2026-10-15T18:34:59.888Z",
+      "warnings": []
+    },
+    {
+      "casino": "Caesars Palace Online Casino",
+      "welcome_bonus": "10 USD sign up bonus + 100% deposit match up to 1,000 USD",
+      "wagering_multiplier": null,
+      "minimum_deposit": "10 USD",
+      "source_url": "https://www.casinotop10.net/caesars-casino",
+      "scraped_at": "2026-10-15T18:35:08.227Z",
+      "warnings": []
+    },
+    {
+      "casino": "Golden Nugget Casino",
+      "welcome_bonus": "Up to 1,000 USD in Casino Credits + 250 Casino Spins",
+      "wagering_multiplier": null,
+      "minimum_deposit": "5 USD",
+      "source_url": "https://www.casinotop10.net/golden-nugget-casino",
+      "scraped_at": "2026-10-15T18:35:16.632Z",
+      "warnings": []
+    }
+  ]
+}

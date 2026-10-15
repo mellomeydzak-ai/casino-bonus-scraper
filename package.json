@@ -1,0 +1,18 @@
+{
+  "name": "casino-bonus-scraper",
+  "version": "1.0.0",
+  "description": "Scrapes welcome-bonus terms for 3 casinos, structures them with an LLM, and publishes a static table.",
+  "type": "module",
+  "main": "scrape.js",
+  "scripts": {
+    "scrape": "node --env-file-if-exists=.env scrape.js",
+    "serve": "npx --yes serve docs"
+  },
+  "engines": {
+    "node": ">=20.12"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0",
+    "robots-parser": "^3.0.1"
+  }
+}
